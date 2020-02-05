@@ -1,0 +1,49 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+server:
+  port: 8765
+spring:
+  application:
+    name: service-hi
+  datasource:
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://127.0.0.1:3306/spring-cloud-auth2-db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+      username: root
+      password: 123456
+  redis:
+    host: 127.0.0.1
+    database: 1
+    port: 6379
+    password: 123456
+  main:
+    allow-bean-definition-overriding: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+security:
+  oauth2:
+    resource:
+      jwt:
+        key-uri: http://localhost:9098/oauth/token_key
+    client:
+      client-id: product-view
+      client-secret: 123456
+      access-token-uri: http://localhost:9098/oauth/token
+      grant-type: password
+      scope: server
+      user-authorization-uri: http://localhost:9098/oauth/authorize
+
+swagger:
+  is:
+    enable: true #是否开启swagger
+  auth:
+    server: http://localhost:9098/oauth/token   #验证token请求地址：ip+网关+服务名称+请求地址
+  service:
+    name: manager
+
+
