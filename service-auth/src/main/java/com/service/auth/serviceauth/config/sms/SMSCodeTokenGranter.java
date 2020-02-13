@@ -1,11 +1,18 @@
 package com.service.auth.serviceauth.config.sms;
 
+import com.service.auth.serviceauth.dto.UserDao;
 import com.service.auth.serviceauth.dto.UserServiceDetail;
+import com.service.auth.serviceauth.exception.MyOAuth2Exception;
+import com.service.auth.serviceauth.utils.HttpUtilsResultVO;
+import com.service.auth.serviceauth.utils.ResponseVo;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.provider.*;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
@@ -31,24 +38,23 @@ public class SMSCodeTokenGranter extends AbstractTokenGranter {
                                                            TokenRequest tokenRequest) {
 
         Map<String, String> parameters = new LinkedHashMap<String, String>(tokenRequest.getRequestParameters());
-        String userMobileNo = parameters.get("username");  //客户端提交的用户名
-        String smscode = parameters.get("smscode");  //客户端提交的验证码
+        String userMobileNo = parameters.get("phone");  //客户端提交的用户名
+        String smscode = parameters.get("code");  //客户端提交的验证码
 
         // 从库里查用户
-        UserDetails user = userServiceDetail.loadUserByUsername(userMobileNo);
+        UserDetails user = userServiceDetail.loadUserByPhone(userMobileNo);
         if(user == null) {
-            System.out.println("用户不存在");
+            throw new InvalidGrantException("用户不存在");
         }
-
         //验证用户状态(是否警用等),代码略
 
         // 验证验证码
         String smsCodeCached = "1234";
         if(StringUtils.isBlank(smsCodeCached)) {
-            System.out.println("用户没有发送验证码");
+            throw new InvalidGrantException("用户没有发送验证码");
         }
         if(!smscode.equals(smsCodeCached)) {
-            System.out.println("验证码不正确");
+            throw new MyOAuth2Exception(601, "验证码不正确");
         }else {
             //验证通过后从缓存中移除验证码,代码略
         }

@@ -3,7 +3,7 @@ spring:
     name: service-auth
   datasource:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/spring-cloud-auth2-db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+      url: jdbc:mysql://127.0.0.1:3306/oauth2-db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
       username: root
       password: 123456
 
@@ -19,7 +19,12 @@ spring:
     password: 123456
   main:
     allow-bean-definition-overriding: true
-
+  thymeleaf:
+    prefix: classpath:/views/
+    suffix: .html
+    cache: false
+  mvc:
+    throw-exception-if-no-handler-found: true
 
 eureka:
   client:

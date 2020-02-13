@@ -9,7 +9,7 @@ spring:
     name: service-hi
   datasource:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/spring-cloud-auth2-db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+      url: jdbc:mysql://127.0.0.1:3306/oauth2-db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
       username: root
       password: 123456
   redis:
@@ -43,7 +43,5 @@ swagger:
     enable: true #是否开启swagger
   auth:
     server: http://localhost:9098/oauth/token   #验证token请求地址：ip+网关+服务名称+请求地址
-  service:
-    name: manager
 
 

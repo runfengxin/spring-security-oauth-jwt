@@ -21,9 +21,20 @@ public class User implements UserDetails, Serializable {
     @Column
     private String password;
 
+    @Column
+    private String phone;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private List<Role> authorities;
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public Long getId() {
         return id;

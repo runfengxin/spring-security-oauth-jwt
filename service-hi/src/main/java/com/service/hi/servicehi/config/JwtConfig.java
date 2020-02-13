@@ -13,6 +13,10 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 
+
+/**
+ * 令牌解码配置
+ */
 @Configuration
 public class JwtConfig {
 

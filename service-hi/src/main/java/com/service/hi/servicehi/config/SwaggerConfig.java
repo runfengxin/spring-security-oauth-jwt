@@ -17,9 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * @Description Swagger api 配置  模式二：增加登录
- * @Author wwz
- * @Date 2019/08/05
+ * swagger文档接口集成oauth2认证
  */
 @Configuration
 @EnableSwagger2
@@ -30,8 +28,6 @@ public class SwaggerConfig {
     private boolean SWAGGER_IS_ENABLE; //是否激活开关，在application.yml中配置注入
     @Value("${swagger.auth.server}")
     private String AUTH_SERVER;
-    @Value("${swagger.service.name}")
-    private String SERVICE_NAME;
     @Bean
     public Docket docket() {
         return new Docket(DocumentationType.SWAGGER_2)

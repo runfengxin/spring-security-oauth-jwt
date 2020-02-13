@@ -13,23 +13,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * @Description 无效Token返回处理器
- * @Author wwz
- * @Date 2019/08/01
- * @Param
- * @Return
+ * 无效Token返回处理器
  */
 @Component
 public class MyTokenExceptionEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        Throwable cause = authException.getCause();
         response.setStatus(HttpStatus.OK.value());
         response.setHeader("Content-Type", "application/json;charset=UTF-8");
         try {
                 HttpUtilsResultVO.writerError(new ResponseVo(401, authException.getMessage()), response);
-                //response.getWriter().write(JSONObject.toJSONString(new ResultVo(405, "token失效")));
-
         } catch (IOException e) {
             e.printStackTrace();
         }

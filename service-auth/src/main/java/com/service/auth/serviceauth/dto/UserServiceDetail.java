@@ -16,4 +16,8 @@ public class UserServiceDetail  implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username);
     }
+
+    public UserDetails loadUserByPhone(String phone) throws UsernameNotFoundException {
+        return userRepository.findByPhone(phone);
+    }
 }

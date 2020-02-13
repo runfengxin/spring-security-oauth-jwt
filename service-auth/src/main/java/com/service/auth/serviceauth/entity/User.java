@@ -21,6 +21,9 @@ public class User implements UserDetails, Serializable {
     @Column
     private String password;
 
+    @Column(nullable = false, unique = true)
+    private String phone;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private List<Role> authorities;
@@ -45,7 +48,13 @@ public class User implements UserDetails, Serializable {
         this.authorities = authorities;
     }
 
+    public String getPhone() {
+        return phone;
+    }
 
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

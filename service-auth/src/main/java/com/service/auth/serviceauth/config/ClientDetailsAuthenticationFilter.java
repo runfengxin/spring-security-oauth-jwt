@@ -19,6 +19,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Base64;
 
+
+/**
+ * 请求前客户端认证拦截器
+ */
 @Component
 public class ClientDetailsAuthenticationFilter extends OncePerRequestFilter {
 
@@ -54,30 +58,20 @@ public class ClientDetailsAuthenticationFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(details.getClientId(), details.getClientSecret(), details.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(token);
-
-
         filterChain.doFilter(request, response);
     }
     /**
      * 判断请求头中是否包含client信息，不包含返回null  Base64编码
      */
     private String[] isHasClientDetails(HttpServletRequest request) {
-
         String[] params = null;
-
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-
         if (header != null) {
-
             String basic = header.substring(0, 5);
-
             if (basic.toLowerCase().contains("basic")) {
-
                 String tmp = header.substring(6);
                 String defaultClientDetails = new String(Base64.getDecoder().decode(tmp));
-
                 String[] clientArrays = defaultClientDetails.split(":");
-
                 if (clientArrays.length != 2) {
                     return params;
                 } else {
@@ -88,7 +82,6 @@ public class ClientDetailsAuthenticationFilter extends OncePerRequestFilter {
         }
         String id = request.getParameter("client_id");
         String secret = request.getParameter("client_secret");
-
         if (header == null && id != null) {
             params = new String[]{id, secret};
         }

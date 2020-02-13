@@ -21,7 +21,7 @@ public class MyOAuthExceptionJacksonSerializer extends StdSerializer<MyOAuth2Exc
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         jgen.writeStartObject();
         jgen.writeObjectField("code", value.getHttpErrorCode());
-        jgen.writeStringField("msg", value.getSummary());
+        jgen.writeStringField("msg", value.getMessage());
 //        jgen.writeStringField("path",request.getServletPath());
 //        jgen.writeStringField("timestamp",String.valueOf(new Date().getTime()));
         if(value.getAdditionalInformation()!=null){

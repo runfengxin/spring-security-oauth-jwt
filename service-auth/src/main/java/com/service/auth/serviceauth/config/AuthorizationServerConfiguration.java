@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.provider.client.JdbcClientDetailsServ
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeTokenGranter;
 import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.error.WebResponseExceptionTranslator;
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenGranter;
 import org.springframework.security.oauth2.provider.password.ResourceOwnerPasswordTokenGranter;
@@ -39,6 +40,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+
+/**
+ * 授权服务器配置
+ */
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
@@ -54,9 +59,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     private TokenStore tokenStore;
 
     @Autowired
-    private ClientDetailsService clientDetailsService;
-
-    @Autowired
     private ClientDetailsAuthenticationFilter clientDetailsAuthenticationFilter;
 
     @Autowired
@@ -65,17 +67,17 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Autowired
     private UserServiceDetail userServiceDetail;
 
-
-    static final Logger logger = LoggerFactory.getLogger(AuthorizationServerConfiguration.class);
-
     private AuthorizationCodeServices authorizationCodeServices() {
-        return new InMemoryAuthorizationCodeServices();  //使用默认
+        return new JdbcAuthorizationCodeServices(dataSource);  //使用JDBC存取授权码
     }
 
     private OAuth2RequestFactory requestFactory() {
         return new DefaultOAuth2RequestFactory(clientDetailsService());  //使用默认
     }
 
+    /**
+     * 使用jwt形式生成token，一般使用redis或jwt  按项目需要选择合适的
+     */
     @Bean
     public TokenStore tokenStore() {
         return new JwtTokenStore(jwtAccessTokenConverter());
@@ -89,13 +91,16 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         return converter;
     }
 
-    @Bean // 声明 ClientDetails实现
+    /**
+     * 声明 ClientDetails实现  可继承ClientDetails和实现ClientDetailsService自定义客户端认证模式，这里使用JDBC默认模式
+     */
+    @Bean
     public ClientDetailsService clientDetailsService() {
         return new JdbcClientDetailsService(dataSource);
     }
 
     /**
-     这是从spring 的代码中 copy出来的,默认的几个 TokenGranter, 我们自定义的就加到这里就行了,目前我还没有加
+     这是从spring 的代码中 copy出来的,默认的几个 TokenGranter
      */
     private List<TokenGranter> getDefaultTokenGranters() {
         ClientDetailsService clientDetails = clientDetailsService();
@@ -116,6 +121,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             tokenGranters.add(new ResourceOwnerPasswordTokenGranter(authenticationManager,
                     tokenServices, clientDetails, requestFactory));
         }
+        //添加手机验证码认证模式
         tokenGranters.add(new SMSCodeTokenGranter(tokenServices, clientDetails, requestFactory, userServiceDetail));
         return tokenGranters;
     }
@@ -141,24 +147,24 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 //        String finalSecret = "{bcrypt}" + new BCryptPasswordEncoder().encode("123456");
-        clients.withClientDetails(clientDetailsService);
-
+        clients.withClientDetails(clientDetailsService());
     }
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints.tokenStore(tokenStore).tokenGranter(tokenGranter())
-//                .tokenEnhancer(jwtAccessTokenConverter())
                 .authenticationManager(authenticationManager);
-        // 配置tokenServices参数
         endpoints.exceptionTranslator(webResponseExceptionTranslator);
+        endpoints.pathMapping("/oauth/confirm_access","/custom/confirm_access");
+        endpoints.authorizationCodeServices(authorizationCodeServices());
 
     }
 
     @Bean
     public TokenEnhancer tokenEnhancer() {
         TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
-        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter()));   // CustomTokenEnhancer 是我自定义一些数据放到token里用的
+        // CustomTokenEnhancer 是我自定义一些数据放到token里用的
+        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(new CustomTokenEnhancer(), jwtAccessTokenConverter()));
         return tokenEnhancerChain;
     }
 
@@ -178,7 +184,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         // 允许表单认证
         // 客户端认证之前的过滤器
-        clientDetailsAuthenticationFilter.setClientDetailsService(clientDetailsService);
+        clientDetailsAuthenticationFilter.setClientDetailsService(clientDetailsService());
         security.addTokenEndpointAuthenticationFilter(clientDetailsAuthenticationFilter);
         security.allowFormAuthenticationForClients().tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()").allowFormAuthenticationForClients();

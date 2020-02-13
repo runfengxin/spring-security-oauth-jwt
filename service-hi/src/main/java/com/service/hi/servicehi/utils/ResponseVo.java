@@ -1,11 +1,7 @@
 package com.service.hi.servicehi.utils;
 /**  
-* @Description 统一返回格式
-* @Author wwz
-* @Date 2019/07/26 
-* @Param
-* @Return   
-*/ 
+* 统一返回格式
+*/
 public class ResponseVo<T> {
     private Integer code;
     private String message;

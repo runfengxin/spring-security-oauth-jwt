@@ -12,23 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * @Description 无权访问处理器
- * @Author wwz
- * @Date 2019/07/30
- * @Param
- * @Return
+ * 无权访问处理器
  */
 @Component
 public class MyAccessDeniedHandler implements AccessDeniedHandler {
-    /**
-     * Handles an access denied failure.
-     *
-     * @param request               that resulted in an <code>AccessDeniedException</code>
-     * @param response              so that the user agent can be advised of the failure
-     * @param accessDeniedException that caused the invocation
-     * @throws IOException      in the event of an IOException
-     * @throws ServletException in the event of a ServletException
-     */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         ResponseVo resultVo = new ResponseVo();

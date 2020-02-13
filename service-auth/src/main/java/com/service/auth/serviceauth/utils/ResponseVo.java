@@ -1,11 +1,5 @@
 package com.service.auth.serviceauth.utils;
-/**  
-* @Description 统一返回格式
-* @Author wwz
-* @Date 2019/07/26 
-* @Param
-* @Return   
-*/ 
+
 public class ResponseVo<T> {
     private Integer code;
     private String message;
