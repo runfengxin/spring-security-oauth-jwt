@@ -38,7 +38,8 @@ keytool -list -rfc --keystore test-jwt.jks | openssl x509 -inform pem -pubkey
 jwt和session的区别可参考这个博客：https://www.cnblogs.com/yuanrw/p/10089796.html
 
 通过/oauth/token 我们可以获取得到access_token和refresh_token(认证服务器需配置启动)  
-如图：  
+如图： 
+![请求结果](https://github.com/runfengxin/spring-security-oauth-jwt/blob/master/others/images/1.png) 
 
 access_token的主要作用是请求需要认证的接口，refresh_token的主要作用是用来刷新access_token的，
 所以一般refresh_token的过期时间会比access_token的过期时间长，为什么要刷新token呢？因为在实际情况下，
