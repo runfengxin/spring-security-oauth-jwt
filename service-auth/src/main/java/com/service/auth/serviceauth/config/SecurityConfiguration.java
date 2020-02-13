@@ -1,6 +1,8 @@
 package com.service.auth.serviceauth.config;
 
 import com.service.auth.serviceauth.dto.UserServiceDetail;
+import com.service.auth.serviceauth.handler.FailureLoginHandler;
+import com.service.auth.serviceauth.handler.SuccessLoginHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,11 +17,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
+// 定义拦截器配置拦截次序,高于ResourceServerConfigurerAdapter（由于分离了认证服务器和资源服务器，这里的
+// ResourceServerConfigurerAdapter采用默认的），不然下面http的拦截不会生效
 @Order(1)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     UserServiceDetail userServiceDetail;
+
+    @Autowired
+    private SuccessLoginHandler successLoginHandler;
+
+    @Autowired
+    private FailureLoginHandler failureLoginHandler;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -49,7 +59,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // 表单登录
         http.formLogin()
-//                .failureHandler(handler)
+//                .failureHandler(failureLoginHandler)
+                .successHandler(successLoginHandler)
                 // 页面
                 .loginPage("/auth/login")
                 // 登录处理url

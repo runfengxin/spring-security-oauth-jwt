@@ -172,20 +172,25 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Primary
     public DefaultTokenServices tokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        //token存取方式
         defaultTokenServices.setTokenStore(tokenStore());
+        //启动refresh_token模式
         defaultTokenServices.setSupportRefreshToken(true);
-        defaultTokenServices.setTokenEnhancer(tokenEnhancer());   // 如果没有设置它,JWT就失效了.
-        defaultTokenServices.setAccessTokenValiditySeconds((int)TimeUnit.DAYS.toSeconds(7));
-        defaultTokenServices.setRefreshTokenValiditySeconds((int)TimeUnit.DAYS.toSeconds(30));
+        // 如果没有设置它,JWT就失效了.
+        defaultTokenServices.setTokenEnhancer(tokenEnhancer());
+        //access_token过期时间  单位秒
+        defaultTokenServices.setAccessTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(1));
+        //refresh_token过期时间  单位秒
+        defaultTokenServices.setRefreshTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(6));
         return defaultTokenServices;
     }
 
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        // 允许表单认证
+    public void configure(AuthorizationServerSecurityConfigurer security) {
         // 客户端认证之前的过滤器
         clientDetailsAuthenticationFilter.setClientDetailsService(clientDetailsService());
         security.addTokenEndpointAuthenticationFilter(clientDetailsAuthenticationFilter);
+        // 允许表单认证
         security.allowFormAuthenticationForClients().tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()").allowFormAuthenticationForClients();
     }

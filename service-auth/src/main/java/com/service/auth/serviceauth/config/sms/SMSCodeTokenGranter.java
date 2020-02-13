@@ -1,13 +1,8 @@
 package com.service.auth.serviceauth.config.sms;
 
-import com.service.auth.serviceauth.dto.UserDao;
 import com.service.auth.serviceauth.dto.UserServiceDetail;
 import com.service.auth.serviceauth.exception.MyOAuth2Exception;
-import com.service.auth.serviceauth.utils.HttpUtilsResultVO;
-import com.service.auth.serviceauth.utils.ResponseVo;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,7 +31,6 @@ public class SMSCodeTokenGranter extends AbstractTokenGranter {
     @Override
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client,
                                                            TokenRequest tokenRequest) {
-
         Map<String, String> parameters = new LinkedHashMap<String, String>(tokenRequest.getRequestParameters());
         String userMobileNo = parameters.get("phone");  //客户端提交的用户名
         String smscode = parameters.get("code");  //客户端提交的验证码
@@ -58,14 +52,11 @@ public class SMSCodeTokenGranter extends AbstractTokenGranter {
         }else {
             //验证通过后从缓存中移除验证码,代码略
         }
-
-
         Authentication userAuth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         // 关于user.getAuthorities(): 我们的自定义用户实体是实现了
         // org.springframework.security.core.userdetails.UserDetails 接口的, 所以有 user.getAuthorities()
         // 当然该参数传null也行
         ((AbstractAuthenticationToken) userAuth).setDetails(parameters);
-
         OAuth2Request storedOAuth2Request = getRequestFactory().createOAuth2Request(client, tokenRequest);
         return new OAuth2Authentication(storedOAuth2Request, userAuth);
     }
