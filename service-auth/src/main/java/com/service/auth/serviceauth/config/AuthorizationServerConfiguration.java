@@ -18,6 +18,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.*;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.client.ClientCredentialsTokenGranter;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
@@ -91,6 +93,12 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         return converter;
     }
 
+    @Bean
+    public ApprovalStore approvalStore() {
+        MyJdbcApprovalStore jdbcApprovalStore = new MyJdbcApprovalStore(dataSource);
+        return jdbcApprovalStore;
+    }
+
     /**
      * 声明 ClientDetails实现  可继承ClientDetails和实现ClientDetailsService自定义客户端认证模式，这里使用JDBC默认模式
      */
@@ -157,7 +165,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         endpoints.exceptionTranslator(webResponseExceptionTranslator);
         endpoints.pathMapping("/oauth/confirm_access","/custom/confirm_access");
         endpoints.authorizationCodeServices(authorizationCodeServices());
-
+        endpoints.approvalStore(approvalStore());
     }
 
     @Bean
