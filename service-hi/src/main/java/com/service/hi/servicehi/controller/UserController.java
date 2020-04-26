@@ -13,10 +13,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -38,6 +40,9 @@ public class UserController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private TokenStore tokenStore;
 
     @Bean
     public RestTemplate restTemplate() {
@@ -106,4 +111,10 @@ public class UserController {
         ResponseEntity<OAuth2AccessToken> exchange = restTemplate.postForEntity(oAuth2ProtectedResourceDetails.getAccessTokenUri(), httpEntity, OAuth2AccessToken.class);
         return exchange;
     }
+
+    @RequestMapping("/logout")
+    public void logout(@RequestParam String token) {
+        tokenStore.removeAccessToken(tokenStore.readAccessToken(token));
+    }
+
 }
