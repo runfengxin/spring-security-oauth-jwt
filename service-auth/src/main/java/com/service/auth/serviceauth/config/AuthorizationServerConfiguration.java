@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -69,6 +70,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Autowired
     private UserServiceDetail userServiceDetail;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     private AuthorizationCodeServices authorizationCodeServices() {
         return new JdbcAuthorizationCodeServices(dataSource);  //使用JDBC存取授权码
     }
@@ -82,7 +86,17 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
      */
     @Bean
     public TokenStore tokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter());
+        return new JwtTokenStore(jwtAccessTokenConverter()) {
+            @Override
+            public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
+                //添加Jwt Token白名单,将Jwt以jti为Key存入redis中，并保持与原Jwt有一致的时效性
+                if (token.getAdditionalInformation().containsKey("jti")) {
+                    String jti = token.getAdditionalInformation().get("jti").toString();
+                    redisTemplate.opsForValue().set(jti, token.getValue(), token.getExpiresIn(), TimeUnit.SECONDS);
+                }
+                super.storeAccessToken(token, authentication);
+            }
+        };
     }
 
     @Bean
@@ -104,7 +118,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
      */
     @Bean
     public ClientDetailsService clientDetailsService() {
-        return new JdbcClientDetailsService(dataSource);
+        JdbcClientDetailsService jdbcClientDetailsService = new JdbcClientDetailsService(dataSource);
+        return jdbcClientDetailsService;
     }
 
     /**
@@ -187,9 +202,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         // 如果没有设置它,JWT就失效了.
         defaultTokenServices.setTokenEnhancer(tokenEnhancer());
         //access_token过期时间  单位秒
-        defaultTokenServices.setAccessTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(1));
+//        defaultTokenServices.setAccessTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(1));
         //refresh_token过期时间  单位秒
-        defaultTokenServices.setRefreshTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(6));
+//        defaultTokenServices.setRefreshTokenValiditySeconds((int)TimeUnit.HOURS.toSeconds(6));
         return defaultTokenServices;
     }
 

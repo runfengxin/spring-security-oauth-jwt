@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -22,14 +24,11 @@ public class JwtConfig {
 
     public static final String public_cert = "public.cert";
 
-    @Autowired
-    private JwtAccessTokenConverter jwtAccessTokenConverter;
+//    @Autowired
+//    private JwtAccessTokenConverter jwtAccessTokenConverter;
 
-    @Bean
-    @Qualifier("tokenStore")
-    public TokenStore tokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter);
-    }
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Bean
     protected JwtAccessTokenConverter jwtAccessTokenConverter() {
@@ -46,4 +45,21 @@ public class JwtConfig {
         converter.setVerifierKey(publicKey);
         return converter;
     }
+
+    @Bean
+    @Qualifier("tokenStore")
+    public TokenStore tokenStore() {
+        return new JwtTokenStore(jwtAccessTokenConverter()) {
+            @Override
+            public void removeAccessToken(OAuth2AccessToken token) {
+                if (token.getAdditionalInformation().containsKey("jti")) {
+                    String jti = token.getAdditionalInformation().get("jti").toString();
+                    redisTemplate.delete(jti);
+                }
+                super.removeAccessToken(token);
+            }
+        };
+    }
+
+
 }

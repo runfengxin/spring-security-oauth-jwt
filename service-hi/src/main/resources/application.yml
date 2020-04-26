@@ -28,14 +28,16 @@ spring:
 security:
   oauth2:
     resource:
+#      token-info-uri: http://localhost:9098/oauth/check_token
       jwt:
         key-uri: http://localhost:9098/oauth/token_key
+
     client:
       client-id: product-view
       client-secret: 123456
       access-token-uri: http://localhost:9098/oauth/token
       grant-type: password
-      scope: server
+      scope: read,write
       user-authorization-uri: http://localhost:9098/oauth/authorize
 
 swagger:
