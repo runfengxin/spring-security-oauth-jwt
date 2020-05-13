@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @EnableEurekaClient
 //https://blog.csdn.net/jaune161/article/details/78060780
+//https://blog.csdn.net/jaune161/article/details/78060780
 public class CasClientApplication {
 
     public static void main(String[] args) {
