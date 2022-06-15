@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -36,7 +37,9 @@ import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +76,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Resource
+    private RedisConnectionFactory redisConnectionFactory;
+
     private AuthorizationCodeServices authorizationCodeServices() {
         return new JdbcAuthorizationCodeServices(dataSource);  //使用JDBC存取授权码
     }
@@ -86,26 +92,27 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
      */
     @Bean
     public TokenStore tokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter()) {
-            @Override
-            public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
-                //添加Jwt Token白名单,将Jwt以jti为Key存入redis中，并保持与原Jwt有一致的时效性
-                if (token.getAdditionalInformation().containsKey("jti")) {
-                    String jti = token.getAdditionalInformation().get("jti").toString();
-                    redisTemplate.opsForValue().set(jti, token.getValue(), token.getExpiresIn(), TimeUnit.SECONDS);
-                }
-                super.storeAccessToken(token, authentication);
-            }
-        };
+//        return new JwtTokenStore(jwtAccessTokenConverter()) {
+//            @Override
+//            public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
+//                //添加Jwt Token白名单,将Jwt以jti为Key存入redis中，并保持与原Jwt有一致的时效性
+//                if (token.getAdditionalInformation().containsKey("jti")) {
+//                    String jti = token.getAdditionalInformation().get("jti").toString();
+//                    redisTemplate.opsForValue().set(jti, token.getValue(), token.getExpiresIn(), TimeUnit.SECONDS);
+//                }
+//                super.storeAccessToken(token, authentication);
+//            }
+//        };
+        return new RedisTokenStore(redisConnectionFactory);
     }
 
-    @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter() {
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("test-jwt.jks"), "test123".toCharArray());
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setKeyPair(keyStoreKeyFactory.getKeyPair("test-jwt"));
-        return converter;
-    }
+//    @Bean
+//    public JwtAccessTokenConverter jwtAccessTokenConverter() {
+//        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("test-jwt.jks"), "test123".toCharArray());
+//        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+//        converter.setKeyPair(keyStoreKeyFactory.getKeyPair("test-jwt"));
+//        return converter;
+//    }
 
     @Bean
     public ApprovalStore approvalStore() {
@@ -187,7 +194,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     public TokenEnhancer tokenEnhancer() {
         TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
         // CustomTokenEnhancer 是我自定义一些数据放到token里用的
-        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(new CustomTokenEnhancer(), jwtAccessTokenConverter()));
+//        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(new CustomTokenEnhancer(), jwtAccessTokenConverter()));
+        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(new CustomTokenEnhancer()));
         return tokenEnhancerChain;
     }
 
